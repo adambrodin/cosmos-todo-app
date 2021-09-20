@@ -1,25 +1,23 @@
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using CosmosApi.Models;
 using System.Collections.Generic;
+using Microsoft.Azure.Cosmos;
+using TodoApi.Models;
 
-namespace CosmosApi.Functions
+namespace TodoApi.Functions
 {
-    public static class ApiHttpTrigger
+    public class ApiHttpTrigger
     {
+        private readonly CosmosClient _cosmosClient;
+        public ApiHttpTrigger(CosmosClient client) => _cosmosClient = client;
+
         [FunctionName("PostTodo")]
-        public static async Task<IActionResult> PostTodo(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "todo")] HttpRequest req,
-            [CosmosDB(databaseName: "todo-db", collectionName: "todos",
-    ConnectionStringSetting = "CosmosDbConnectionString"
-    )]IAsyncCollector<dynamic> asyncCollector)
+        public async Task<IActionResult> PostTodo([HttpTrigger(AuthorizationLevel.Function, "post", Route = "todo")] HttpRequest req)
         {
             string name = req.Query["name"];
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
@@ -28,7 +26,7 @@ namespace CosmosApi.Functions
 
             if (!string.IsNullOrEmpty(name))
             {
-                await asyncCollector.AddAsync(new CosmosApi.Models.TodoItem
+                await _cosmosClient.GetContainer("todo-db", "todos").CreateItemAsync(new TodoItem
                 {
                     Id = System.Guid.NewGuid().ToString(),
                     Name = name
@@ -43,13 +41,18 @@ namespace CosmosApi.Functions
         }
 
         [FunctionName("FetchAllTodos")]
-        public static IActionResult FetchAllTodos(
-    [HttpTrigger(AuthorizationLevel.Function, "get", Route = "todos")] HttpRequest req,
-    [CosmosDB(databaseName: "todo-db", collectionName: "todos",
-    ConnectionStringSetting = "CosmosDbConnectionString"
-    , SqlQuery ="SELECT * FROM todos")] IEnumerable<TodoItem> fetchedTodos, ILogger logger)
+        public async Task<IActionResult> FetchAllTodos([HttpTrigger(AuthorizationLevel.Function, "get", Route = "todos")] HttpRequest req)
         {
-            return new OkObjectResult(fetchedTodos);
+            var iterator = _cosmosClient.GetContainer("todo-db", "todos").GetItemQueryIterator<TodoItem>(new QueryDefinition("SELECT * FROM todos"));
+            var results = new List<TodoItem>();
+
+            while (iterator.HasMoreResults)
+            {
+                var result = await iterator.ReadNextAsync().ConfigureAwait(false);
+                results.AddRange(result.Resource);
+            }
+
+            return new OkObjectResult(results);
         }
     }
 }
