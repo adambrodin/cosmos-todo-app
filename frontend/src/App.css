@@ -1,5 +1,26 @@
 .App {
   text-align: center;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+body,
+html,
+#root {
+  height: 100%;
+}
+
+.todo-input-form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+li {
+  text-align: initial;
 }
 
 .App-logo {

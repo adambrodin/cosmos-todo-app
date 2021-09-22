@@ -12,6 +12,9 @@ namespace TodoApi.Models
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("completed")]
+        public bool Completed { get; set; }
+
         [JsonProperty("tasks")]
         public List<Task> Tasks { get; set; }
     }
