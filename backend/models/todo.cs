@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace TodoApi.Models
@@ -10,5 +11,8 @@ namespace TodoApi.Models
 
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        [JsonProperty("tasks")]
+        public List<Task> Tasks { get; set; }
     }
 }
