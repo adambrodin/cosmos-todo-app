@@ -41,7 +41,7 @@ namespace TodoApi.Functions
         }
 
         [FunctionName("FetchAllTodos")]
-        public async Task<IActionResult> FetchAllTodos([HttpTrigger(AuthorizationLevel.Function, "get", Route = "todos")] HttpRequest req)
+        public async Task<IActionResult> FetchAllTodos([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "todos")] HttpRequest req)
         {
             var iterator = _cosmosClient.GetContainer("todo-db", "todos").GetItemQueryIterator<TodoItem>(new QueryDefinition("SELECT * FROM todos"));
             var results = new List<TodoItem>();
