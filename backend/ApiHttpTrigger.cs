@@ -17,7 +17,7 @@ namespace TodoApi.Functions
         public ApiHttpTrigger(CosmosClient client) => _cosmosClient = client;
 
         [FunctionName("PostTodo")]
-        public async Task<IActionResult> PostTodo([HttpTrigger(AuthorizationLevel.Function, "post", Route = "todo")] HttpRequest req)
+        public async Task<IActionResult> PostTodo([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "todo")] HttpRequest req)
         {
             string name = req.Query["name"];
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
