@@ -22,4 +22,12 @@ function App() {
   );
 }
 
+fetch("api/todos")
+  .then((response) => {
+    return response.json();
+  })
+  .then((myJson) => {
+    console.log(myJson);
+  });
+
 export default App;
