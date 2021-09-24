@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using Microsoft.Azure.Cosmos;
 using TodoApi.Models;
+using System.Linq;
+using System;
 
 namespace TodoApi.Functions
 {
@@ -29,7 +31,9 @@ namespace TodoApi.Functions
                 await _cosmosClient.GetContainer("todo-db", "todos").CreateItemAsync(new TodoItem
                 {
                     Id = System.Guid.NewGuid().ToString(),
-                    Name = name
+                    Name = name,
+                    Completed = false,
+                    SubTasks = new List<Models.Task>()
                 }).ConfigureAwait(false);
             }
 
@@ -53,6 +57,32 @@ namespace TodoApi.Functions
             }
 
             return new OkObjectResult(results);
+        }
+
+        [FunctionName("UpdateTodo")]
+        public async Task<IActionResult> UpdateTodo([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "todo")] HttpRequest req)
+        {
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
+            TodoItem requestData = JsonConvert.DeserializeObject<TodoItem>(requestBody);
+
+            if (requestData == null || requestData.Id == null)
+            {
+                return new OkObjectResult("Please provide a valid Todo id.");
+            }
+
+            var container = _cosmosClient.GetContainer("todo-db", "todos");
+            try
+            {
+                TodoItem fetchedTodo = await container.ReadItemAsync<TodoItem>(requestData.Id, new PartitionKey(requestData.Id)).ConfigureAwait(false);
+                await container.ReplaceItemAsync(requestData, requestData.Id, new PartitionKey(requestData.Id)).ConfigureAwait(false);
+            }
+            catch
+            {
+                return new OkObjectResult("Could not find existing todo.");
+            }
+
+            string responseMessage = JsonConvert.SerializeObject(requestData);
+            return new OkObjectResult(responseMessage);
         }
     }
 }
