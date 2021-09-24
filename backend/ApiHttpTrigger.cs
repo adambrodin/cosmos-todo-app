@@ -63,25 +63,51 @@ namespace TodoApi.Functions
         public async Task<IActionResult> UpdateTodo([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "todo")] HttpRequest req)
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
-            TodoItem requestData = JsonConvert.DeserializeObject<TodoItem>(requestBody);
+            TodoItem requestTodo = JsonConvert.DeserializeObject<TodoItem>(requestBody);
 
-            if (requestData == null || requestData.Id == null)
+            if (requestTodo == null || requestTodo.Id == null)
             {
                 return new OkObjectResult("Please provide a valid Todo id.");
             }
 
-            var container = _cosmosClient.GetContainer("todo-db", "todos");
             try
             {
-                TodoItem fetchedTodo = await container.ReadItemAsync<TodoItem>(requestData.Id, new PartitionKey(requestData.Id)).ConfigureAwait(false);
-                await container.ReplaceItemAsync(requestData, requestData.Id, new PartitionKey(requestData.Id)).ConfigureAwait(false);
+                var container = _cosmosClient.GetContainer("todo-db", "todos");
+                TodoItem fetchedTodo = await container.ReadItemAsync<TodoItem>(requestTodo.Id, new PartitionKey(requestTodo.Id)).ConfigureAwait(false);
+                await container.ReplaceItemAsync(requestTodo, requestTodo.Id, new PartitionKey(requestTodo.Id)).ConfigureAwait(false);
             }
             catch
             {
                 return new OkObjectResult("Could not find existing todo.");
             }
 
-            string responseMessage = JsonConvert.SerializeObject(requestData);
+            string responseMessage = JsonConvert.SerializeObject(requestTodo);
+            return new OkObjectResult(responseMessage);
+        }
+
+        [FunctionName("DeleteTodo")]
+        public async Task<ActionResult> DeleteTodo([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "todo")] HttpRequest req)
+        {
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
+            dynamic requestData = JsonConvert.DeserializeObject(requestBody);
+            string todoId = requestData.id;
+
+            if (todoId == null)
+            {
+                return new OkObjectResult("Please provide a valid Todo id.");
+            }
+
+            try
+            {
+                var container = _cosmosClient.GetContainer("todo-db", "todos");
+                await container.DeleteItemAsync<TodoItem>(todoId, new PartitionKey(todoId)).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                return new OkObjectResult("Could not find existing todo. " + e.Message);
+            }
+
+            string responseMessage = $"Deleted todo with id {requestData.id}";
             return new OkObjectResult(responseMessage);
         }
     }
