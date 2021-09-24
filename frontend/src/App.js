@@ -9,7 +9,7 @@ function App() {
 
   // When page is initially loaded
   useEffect(() => {
-    fetch("api/todos")
+    fetch("api/todos", { method: "GET" })
       .then((response) => response.json())
       .then((data) => {
         setTodos(data);
@@ -21,6 +21,11 @@ function App() {
   useEffect(() => {}, [todos]);
 
   function addTodo(todo) {
+    // Tells API to add todo item
+    fetch("api/todo", { method: "POST", body: JSON.stringify(todo) }).catch(
+      console.error
+    );
+
     setTodos([todo, ...todos]);
   }
 
@@ -28,9 +33,15 @@ function App() {
   function toggleComplete(id) {
     var updatedTodos = todos.map((todo) => {
       if (todo.id === id) {
-        return { ...todo, completed: !todo.completed };
-      }
+        todo.completed = !todo.completed;
 
+        // Tells API to update todo item
+        fetch("api/todo", { method: "PUT", body: JSON.stringify(todo) }).catch(
+          console.error
+        );
+
+        return { ...todo };
+      }
       return todo;
     });
 
@@ -38,6 +49,11 @@ function App() {
   }
 
   function removeTodo(id) {
+    // Tells API to delete todo item
+    fetch("api/todo", { method: "DELETE", body: `{"id":"${id}"}` }).catch(
+      console.error
+    );
+
     // Keeps all todos except for the one with remove id
     var updatedTodos = todos.filter((todo) => todo.id !== id);
     setTodos(updatedTodos);
