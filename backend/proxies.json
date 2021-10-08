@@ -6,6 +6,7 @@
         "methods": ["GET"],
         "route": "/%loaderio_token%"
       },
+      "backendUri": "https://lemon-sky-07c9ff703.azurestaticapps.net",
       "responseOverrides": {
         "response.body": "%loaderio_token%",
         "response.headers.Content-Type": "text/plain"
