@@ -4,10 +4,10 @@
     "loaderio-verifier": {
       "matchCondition": {
         "methods": ["GET"],
-        "route": "/%loaderio-token%"
+        "route": "/%loaderio_token%"
       },
       "responseOverrides": {
-        "response.body": "%loaderio-token%",
+        "response.body": "%loaderio_token%",
         "response.headers.Content-Type": "text/plain"
       }
     }
