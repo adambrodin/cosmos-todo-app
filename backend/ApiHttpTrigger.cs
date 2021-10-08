@@ -110,11 +110,5 @@ namespace TodoApi.Functions
             string responseMessage = $"Deleted todo with id {requestData.id}";
             return new OkObjectResult(responseMessage);
         }
-        
-        [FunctionName("LoaderIO")]
-        public async Task<ActionResult> LoaderIO([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "loaderio-1803404b4626322198fae5e5afa38ffb")] HttpRequest req)
-        {
-            return new OkObjectResult("loaderio-1803404b4626322198fae5e5afa38ffb");
-        }
     }
 }
